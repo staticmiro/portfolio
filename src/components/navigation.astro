@@ -1,0 +1,176 @@
+---
+import { useTranslations, languages, defaultLang } from '../i18n/ui';
+
+interface Props {
+  lang: keyof typeof languages;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const currentPath = Astro.url.pathname;
+const isProjects = currentPath.includes('/projects');
+
+const getLangUrl = (targetLang: string) => {
+  if (isProjects) {
+    return targetLang === defaultLang ? '/projects/' : `/${targetLang}/projects/`;
+  }
+  return targetLang === defaultLang ? '/' : `/${targetLang}/`;
+};
+---
+
+
+<div class="top-bar desktop-only anim-1">
+  <div class="nav-links">
+    <a href={lang === defaultLang ? '/' : `/${lang}/`} class={`nav-link ${!isProjects ? 'active' : ''}`}>{t('nav.home')}</a>
+    <a href={lang === defaultLang ? '/projects/' : `/${lang}/projects/`} class={`nav-link ${isProjects ? 'active' : ''}`}>{t('nav.projects')}</a>
+  </div>
+
+  <div class="lang-picker dropdown-wrap">
+    <button class="icon-btn lang-btn" aria-label="Switch language" title="Language">
+      <span class="material-symbols-rounded">translate</span>
+    </button>
+    <div class="dropdown-menu lang-menu">
+      {Object.entries(languages).map(([code, label]) => (
+        <a href={getLangUrl(code)} class={`color-opt ${lang === code ? 'active' : ''}`}>
+          <span class="color-label">{label}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <div class="color-picker dropdown-wrap">
+    <button class="icon-btn color-btn" aria-label="Change color" title="Color">
+      <span class="material-symbols-rounded">palette</span>
+    </button>
+    <div class="dropdown-menu color-menu">
+      <button class="color-opt" data-color-val="blue"><span class="swatch" style="background:#405F90"></span><span class="color-label">{t('color.blue')}</span></button>
+      <button class="color-opt" data-color-val="purple"><span class="swatch" style="background:#6750A4"></span><span class="color-label">{t('color.purple')}</span></button>
+      <button class="color-opt" data-color-val="green"><span class="swatch" style="background:#386A1F"></span><span class="color-label">{t('color.green')}</span></button>
+      <button class="color-opt" data-color-val="rose"><span class="swatch" style="background:#984061"></span><span class="color-label">{t('color.rose')}</span></button>
+    </div>
+  </div>
+  <button class="icon-btn theme-btn" aria-label="Toggle theme" title="Theme">
+    <span class="material-symbols-rounded theme-icon">dark_mode</span>
+  </button>
+</div>
+
+
+<nav class="mobile-dock mobile-only">
+  <a href={lang === defaultLang ? '/' : `/${lang}/`} class={`dock-btn ${!isProjects ? 'active' : ''}`} aria-label="Home">
+    <span class="material-symbols-rounded">home</span>
+  </a>
+  <a href={lang === defaultLang ? '/projects/' : `/${lang}/projects/`} class={`dock-btn ${isProjects ? 'active' : ''}`} aria-label="Projects">
+    <span class="material-symbols-rounded">grid_view</span>
+  </a>
+  
+  <div class="dropdown-wrap">
+    <button class="dock-btn color-btn" aria-label="Color">
+      <span class="material-symbols-rounded">palette</span>
+    </button>
+    <div class="dropdown-menu dropdown-up color-menu">
+      <button class="color-opt" data-color-val="blue"><span class="swatch" style="background:#405F90"></span><span class="color-label">{t('color.blue')}</span></button>
+      <button class="color-opt" data-color-val="purple"><span class="swatch" style="background:#6750A4"></span><span class="color-label">{t('color.purple')}</span></button>
+      <button class="color-opt" data-color-val="green"><span class="swatch" style="background:#386A1F"></span><span class="color-label">{t('color.green')}</span></button>
+      <button class="color-opt" data-color-val="rose"><span class="swatch" style="background:#984061"></span><span class="color-label">{t('color.rose')}</span></button>
+    </div>
+  </div>
+
+  <div class="dropdown-wrap">
+    <button class="dock-btn lang-btn" aria-label="Language">
+      <span class="material-symbols-rounded">translate</span>
+    </button>
+    <div class="dropdown-menu dropdown-up lang-menu">
+      {Object.entries(languages).map(([code, label]) => (
+        <a href={getLangUrl(code)} class={`color-opt ${lang === code ? 'active' : ''}`}>
+          <span class="color-label">{label}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <button class="dock-btn theme-btn" aria-label="Theme">
+    <span class="material-symbols-rounded theme-icon">dark_mode</span>
+  </button>
+</nav>
+
+<script is:inline>
+(function(){
+  var colorBtns = document.querySelectorAll('.color-btn');
+  var colorMenus = document.querySelectorAll('.color-menu');
+
+  function pickColor(c) {
+    localStorage.setItem('color', c);
+    document.documentElement.setAttribute('data-color', c);
+    document.querySelectorAll('.color-opt[data-color-val]').forEach(function(el) {
+      el.classList.toggle('active', el.getAttribute('data-color-val') === c);
+    });
+    colorMenus.forEach(m => m.classList.remove('open'));
+  }
+
+  var initColor = localStorage.getItem('color') || 'blue';
+  document.documentElement.setAttribute('data-color', initColor);
+  document.querySelectorAll('.color-opt[data-color-val="'+initColor+'"]').forEach(el => el.classList.add('active'));
+
+  colorBtns.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var menu = btn.nextElementSibling;
+      var isOpen = menu.classList.contains('open');
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+      if (!isOpen) menu.classList.add('open');
+    });
+  });
+
+  document.querySelectorAll('.color-opt[data-color-val]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      pickColor(btn.getAttribute('data-color-val'));
+    });
+  });
+
+
+  var langBtns = document.querySelectorAll('.lang-btn');
+  langBtns.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var menu = btn.nextElementSibling;
+      var isOpen = menu.classList.contains('open');
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+      if (!isOpen) menu.classList.add('open');
+    });
+  });
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+  });
+
+
+  var themeIcons = document.querySelectorAll('.theme-icon');
+  function isDark() {
+    var s = localStorage.getItem('theme') || 'auto';
+    if (s === 'auto') return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return s === 'dark';
+  }
+  function applyTheme() {
+    var dark = isDark();
+    document.documentElement.classList.toggle('dark', dark);
+    themeIcons.forEach(icon => icon.textContent = dark ? 'light_mode' : 'dark_mode');
+  }
+  applyTheme();
+  
+  var themeBtns = document.querySelectorAll('.theme-btn');
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      var next = isDark() ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      applyTheme();
+    });
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+    if ((localStorage.getItem('theme') || 'auto') === 'auto') applyTheme();
+  });
+})();
+</script>

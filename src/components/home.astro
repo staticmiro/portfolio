@@ -1,0 +1,122 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/layout.astro';
+import Navigation from './navigation.astro';
+import { useTranslations, languages, defaultLang } from '../i18n/ui';
+import { site, socials, kofi } from '../config';
+import '../styles/index.css';
+
+interface Props {
+  lang: keyof typeof languages;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const allProjects = await getCollection('projects', ({ data }) => {
+  return data.lang === lang;
+});
+
+const featuredProjects = allProjects
+  .filter(p => p.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const skillsMeta = [
+  { icon: 'terminal', colorClass: 'chip-primary' },
+  { icon: 'security', colorClass: 'chip-secondary' },
+  { icon: 'dns', colorClass: 'chip-tertiary' },
+  { icon: 'inventory_2', colorClass: 'chip-surface' },
+  { icon: 'integration_instructions', colorClass: 'chip-primary' },
+  { icon: 'javascript', colorClass: 'chip-secondary' },
+  { icon: 'account_tree', colorClass: 'chip-tertiary' },
+  { icon: 'smart_toy', colorClass: 'chip-surface' }
+];
+---
+
+<Layout title={site.title} lang={lang}>
+  <div class="page">
+    <Navigation lang={lang} />
+
+
+    <section class="hero anim-2" id="hero">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>{t('hero.available')}</span>
+      </div>
+      <div class="hero-text">
+        <h1 class="display-name">Miroslaw Maik</h1>
+        <p class="title-role">{t('hero.role')}</p>
+        <p class="bio">{t('hero.bio')}</p>
+      </div>
+      
+  
+      <div class="hero-socials">
+        {socials.map((s) => (
+          <a href={s.href} target="_blank" rel="noreferrer noopener" class="social-icon-link" aria-label={s.name}>
+             <div class="social-icon" data-icon={s.icon}></div>
+          </a>
+        ))}
+      </div>
+
+      <div class="hero-actions">
+        <a href={`mailto:${site.email}`} class="btn-filled" id="mail-btn">
+          <span class="material-symbols-rounded" style="font-size:18px">mail</span>
+          <span>{t('hero.contact')}</span>
+        </a>
+        <a href={kofi} target="_blank" rel="noreferrer noopener" class="btn-tonal kofi-btn" id="kofi-btn">
+          <span class="material-symbols-rounded" style="font-size:18px">local_cafe</span>
+          <span>{t('hero.kofi')}</span>
+        </a>
+      </div>
+    </section>
+
+
+    <section class="anim-3" id="skills">
+      <h2 class="section-label">{t('section.focus')}</h2>
+      <div class="chip-row" id="skills-chips">
+        {t('skills.labels').map((s: string, i: number) => (
+          <span class={`chip ${skillsMeta[i].colorClass}`}>
+            <span class="material-symbols-rounded" style="font-size: 16px;">{skillsMeta[i].icon}</span>
+            <span>{s}</span>
+          </span>
+        ))}
+      </div>
+    </section>
+
+
+    <section class="anim-4" id="work">
+      <h2 class="section-label">{t('section.work')}</h2>
+      {featuredProjects.map((p) => {
+        const link = p.data.links[0]?.url || '#';
+        return (
+          <a href={link} target="_blank" rel="noreferrer" class="project-card">
+            <div class="proj-head">
+              <div>
+                <h3 class="proj-title">{p.data.title} <span class="proj-type">· {p.data.status}</span></h3>
+              </div>
+              <svg class="proj-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            </div>
+            <p class="proj-desc">{p.data.description}</p>
+            <div class="proj-tags">
+              {p.data.tags.map((tag) => (
+                <span class="proj-tag">{tag}</span>
+              ))}
+            </div>
+          </a>
+        );
+      })}
+      
+      <div class="all-projects-link">
+        <a href={lang === defaultLang ? '/projects/' : `/${lang}/projects/`} class="btn-text">
+           {t('hero.viewWork')}
+           <span class="material-symbols-rounded">arrow_right_alt</span>
+        </a>
+      </div>
+    </section>
+
+
+    <footer class="footer anim-5" id="footer">
+      <p>{t('footer.text')}</p>
+    </footer>
+  </div>
+</Layout>

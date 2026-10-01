@@ -1,0 +1,14 @@
+---
+import Projects from '../../components/projects.astro';
+import { languages, defaultLang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return Object.keys(languages)
+    .filter((l) => l !== defaultLang)
+    .map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+---
+
+<Projects lang={lang as keyof typeof languages} />
